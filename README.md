@@ -6,4 +6,5 @@ Simple Example to read from a table, process it and inserts into another table. 
 
 1. Install MySQL and create database `teamdb`. Initialization scripts would be automatically executed using flyway.
 2. `git clone https://github.com/sponnusamy/SpringBootBatchExample.git`
+3. `cd SpringBootBatchExample`
 3. `mvn package && java -jar target/springbatch-0.0.1-SNAPSHOT.jar`
