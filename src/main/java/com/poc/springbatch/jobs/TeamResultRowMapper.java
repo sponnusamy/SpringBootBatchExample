@@ -1,4 +1,4 @@
-package com.poc.springbatch.config;
+package com.poc.springbatch.jobs;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

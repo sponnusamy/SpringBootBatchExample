@@ -9,6 +9,7 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
@@ -20,6 +21,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.poc.springbatch.jobs.StoredProcTasklet;
+import com.poc.springbatch.jobs.TeamItemProcessor;
+import com.poc.springbatch.jobs.TeamProcessJobExecutionListener;
+import com.poc.springbatch.jobs.TeamResultRowMapper;
 import com.poc.springbatch.model.ProcessedTeam;
 import com.poc.springbatch.model.Team;
 
@@ -71,14 +76,22 @@ public class BatchConfig {
     }
 
     @Bean
-    public Step step1(JdbcBatchItemWriter<ProcessedTeam> writer) {
-        return stepBuilderFactory.get("step1").<Team, ProcessedTeam>chunk(10).reader(jdbcReader(dataSource()))
+    public Step step1() {
+        Tasklet tasklet = new StoredProcTasklet(dataSource());
+        return stepBuilderFactory.get("step1").tasklet(tasklet).build();
+    }
+
+    @Bean
+    public Step step2(JdbcBatchItemWriter<ProcessedTeam> writer) {
+        return stepBuilderFactory.get("step2").<Team, ProcessedTeam>chunk(10).reader(jdbcReader(dataSource()))
                 .processor(processor()).writer(writer).build();
     }
 
     @Bean
-    Job teamProcessJob(JobBuilderFactory jbf, StepBuilderFactory sbf, Step step1) throws Exception {
-        return jbf.get("teamProcessJob").incrementer(new RunIdIncrementer()).start(step1).listener(listener()).build();
+    Job teamProcessJob(JobBuilderFactory jbf, StepBuilderFactory sbf, Step step1, Step step2) throws Exception {
+        // If any exception in step1 step2 wouldn't trigger
+        return jbf.get("teamProcessJob").incrementer(new RunIdIncrementer()).start(step1).next(step2)
+                .listener(listener()).build();
     }
 
     @Bean

@@ -1,0 +1,9 @@
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS sample_proc$$
+CREATE PROCEDURE sample_proc(OUT status VARCHAR(50))
+BEGIN
+    SET status='FAILED';
+END$$
+
+DELIMITER ;
